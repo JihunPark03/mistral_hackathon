@@ -1,5 +1,8 @@
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Any
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -21,10 +24,19 @@ class Settings(BaseSettings):
     hf_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     # Networking / CORS
-    allowed_origins: list[str] = ["*"]  # comma-separated env var ALLOWED_ORIGINS
+    # Accept either a comma-separated string or a JSON list in ALLOWED_ORIGINS.
+    allowed_origins: str | list[str] = "http://localhost:5173"
     allow_origin_regex: str | None = None  # optional regex for dynamic hostnames
 
     model_config = {"env_file": ".env", "extra": "ignore"}
+
+    @field_validator("allowed_origins", mode="before")
+    @classmethod
+    def split_origins(cls, v: Any) -> list[str]:
+        # Env parser tries JSON for lists; if it fails we land here with the raw string.
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(",") if s.strip()]
+        return v
 
 
 @lru_cache

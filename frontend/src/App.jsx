@@ -1,11 +1,12 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
-import { Zap, Users, PlusCircle, Activity, Network } from 'lucide-react'
+import { Zap, Users, UserPlus, PlusCircle, Activity, Network } from 'lucide-react'
 import Marketplace from './pages/Marketplace'
 import AgentProfile from './pages/AgentProfile'
 import PostJob from './pages/PostJob'
 import JobTracker from './pages/JobTracker'
 import MeshView from './pages/MeshView'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 
 function NavItem({ to, icon: Icon, label }) {
   return (
@@ -47,6 +48,7 @@ export default function App() {
               <NavItem to="/jobs" icon={Activity} label="Jobs" />
               <NavItem to="/mesh" icon={Network} label="Mesh" />
               <NavItem to="/login" icon={Users} label="Login" />
+              <NavItem to="/signup" icon={UserPlus} label="Sign Up" />
             </nav>
           </div>
         </header>
@@ -61,6 +63,7 @@ export default function App() {
             <Route path="/jobs/:id" element={<JobTracker />} />
             <Route path="/mesh" element={<MeshView />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
           </Routes>
         </main>
 
