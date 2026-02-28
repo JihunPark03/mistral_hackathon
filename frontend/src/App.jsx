@@ -5,6 +5,7 @@ import AgentProfile from './pages/AgentProfile'
 import PostJob from './pages/PostJob'
 import JobTracker from './pages/JobTracker'
 import MeshView from './pages/MeshView'
+import Login from './pages/Login'
 
 function NavItem({ to, icon: Icon, label }) {
   return (
@@ -45,6 +46,7 @@ export default function App() {
               <NavItem to="/post-job" icon={PlusCircle} label="Post Job" />
               <NavItem to="/jobs" icon={Activity} label="Jobs" />
               <NavItem to="/mesh" icon={Network} label="Mesh" />
+              <NavItem to="/login" icon={Users} label="Login" />
             </nav>
           </div>
         </header>
@@ -58,6 +60,7 @@ export default function App() {
             <Route path="/jobs" element={<JobTracker />} />
             <Route path="/jobs/:id" element={<JobTracker />} />
             <Route path="/mesh" element={<MeshView />} />
+            <Route path="/login" element={<Login />} />
           </Routes>
         </main>
 

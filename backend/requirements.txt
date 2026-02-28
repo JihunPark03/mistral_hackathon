@@ -11,3 +11,5 @@ websockets==14.1
 python-multipart==0.0.20
 httpx==0.28.1
 numpy==2.2.1
+passlib[argon2]==1.7.4
+PyJWT==2.8.0

@@ -1,0 +1,71 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from passlib.context import CryptContext
+
+from backend.db.models import UserModel, UserRole, Folder
+
+# Password hashing
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+
+async def get_user_id(db: AsyncSession, username: str):
+    result = await db.execute(select(UserModel).where(UserModel.username == username))
+    user = result.scalars().first()
+    return user.id if user else None
+
+
+async def get_user_by_id(db: AsyncSession, user_id: int):
+    result = await db.execute(select(UserModel).where(UserModel.id == user_id))
+    return result.scalars().first()
+
+
+async def get_users(db: AsyncSession):
+    result = await db.execute(select(UserModel))
+    return result.scalars().all()
+
+
+async def get_user_role(db: AsyncSession, user_id: int):
+    result = await db.execute(select(UserModel).where(UserModel.id == user_id))
+    data = result.scalars().first()
+    return data.role if data else None
+
+
+async def delete_user(db: AsyncSession, username: str, password: str):
+    result = await db.execute(select(UserModel).where(UserModel.username == username))
+    user = result.scalars().first()
+    if not user:
+        return False
+
+    if not pwd_context.verify(password, user.hashed_password):
+        return False
+
+    await db.delete(user)
+    await db.commit()
+    return True
+
+
+async def create_user(db: AsyncSession, username: str, full_name: str | None, email: str, password: str):
+    hashed_password = pwd_context.hash(password)
+    new_user = UserModel(
+        username=username,
+        full_name=full_name,
+        email=email,
+        hashed_password=hashed_password,
+        role=UserRole.user,
+    )
+
+    db.add(new_user)
+    await db.flush()  # assign PK
+
+    root_folder = Folder(
+        name=username,
+        path="/",
+        depth=0,
+        user_id=new_user.id,
+    )
+    db.add(root_folder)
+
+    await db.commit()
+    await db.refresh(new_user)
+
+    return new_user
