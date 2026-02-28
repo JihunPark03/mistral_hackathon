@@ -2,9 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from passlib.context import CryptContext
 
-from backend.db.models import UserModel, UserRole, Folder
+from backend.db.models import UserModel, UserRole, Folder, ModelRecord
 
-# Password hashing
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
@@ -69,3 +68,21 @@ async def create_user(db: AsyncSession, username: str, full_name: str | None, em
     await db.refresh(new_user)
 
     return new_user
+
+
+async def list_user_models(db: AsyncSession, user_id: int):
+    result = await db.execute(select(ModelRecord).where(ModelRecord.owner_id == user_id))
+    return result.scalars().all()
+
+
+async def add_model(db: AsyncSession, user_id: int, name: str, description: str, source_url: str):
+    model = ModelRecord(
+        name=name,
+        description=description,
+        source_url=source_url,
+        owner_id=user_id,
+    )
+    db.add(model)
+    await db.commit()
+    await db.refresh(model)
+    return model

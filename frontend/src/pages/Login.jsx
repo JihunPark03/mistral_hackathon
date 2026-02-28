@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useAuth from '../hooks/useAuth'
 import { ShieldCheck, KeyRound } from 'lucide-react'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
@@ -10,6 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
+  const { refresh } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -31,6 +33,7 @@ export default function Login() {
         throw new Error(body.detail || 'Login failed')
       }
 
+      await refresh()
       navigate('/')
     } catch (err) {
       setError(err.message)

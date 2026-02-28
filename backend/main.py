@@ -23,9 +23,11 @@ from backend.db.models import UserModel
 from backend.db_login_crud import (
     create_user,
     delete_user,
+    add_model,
     get_user_by_id,
     get_user_id,
     get_user_role,
+    list_user_models,
     get_users,
 )
 from backend.db.seed import seed_agents
@@ -71,6 +73,12 @@ class RegisterInformation(BaseModel):
 class DeletingInformation(BaseModel):
     username: str
     password: str
+
+
+class ModelCreate(BaseModel):
+    name: str
+    description: str | None = ""
+    source_url: str
 
 
 # -------------------------
@@ -277,6 +285,26 @@ async def get_all_user(db: AsyncSession = Depends(get_db)):
 async def delete_an_user(data: DeletingInformation, db: AsyncSession = Depends(get_db)):
     response = await delete_user(db, data.username, data.password)
     return response
+
+
+# -------------------------
+# User models (per-user uploads)
+# -------------------------
+
+@app.get("/models")
+async def list_models(current_user: Annotated[User, Depends(get_current_active_user)], db: AsyncSession = Depends(get_db)):
+    models = await list_user_models(db, current_user.userid)
+    return models
+
+
+@app.post("/models")
+async def create_model(
+    data: ModelCreate,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    model = await add_model(db, current_user.userid, data.name, data.description or "", data.source_url)
+    return model
 
 
 @app.get("/")

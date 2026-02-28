@@ -7,6 +7,8 @@ import JobTracker from './pages/JobTracker'
 import MeshView from './pages/MeshView'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import useAuth from './hooks/useAuth'
+import Models from './pages/Models'
 
 function NavItem({ to, icon: Icon, label }) {
   return (
@@ -27,6 +29,8 @@ function NavItem({ to, icon: Icon, label }) {
 }
 
 export default function App() {
+  const { user, logout } = useAuth()
+
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col">
@@ -47,8 +51,24 @@ export default function App() {
               <NavItem to="/post-job" icon={PlusCircle} label="Post Job" />
               <NavItem to="/jobs" icon={Activity} label="Jobs" />
               <NavItem to="/mesh" icon={Network} label="Mesh" />
-              <NavItem to="/login" icon={Users} label="Login" />
-              <NavItem to="/signup" icon={UserPlus} label="Sign Up" />
+              {user ? (
+                <>
+                  <NavItem to="/models" icon={Network} label="My Models" />
+                  <button
+                    onClick={logout}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-white/5 border border-white/10"
+                  >
+                    <Users size={16} />
+                    <span className="hidden sm:inline">{user.username}</span>
+                    <span className="text-xs text-gray-500">(Logout)</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <NavItem to="/login" icon={Users} label="Login" />
+                  <NavItem to="/signup" icon={UserPlus} label="Sign Up" />
+                </>
+              )}
             </nav>
           </div>
         </header>
@@ -64,6 +84,7 @@ export default function App() {
             <Route path="/mesh" element={<MeshView />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/models" element={<Models />} />
           </Routes>
         </main>
 

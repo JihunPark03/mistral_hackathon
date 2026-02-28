@@ -79,6 +79,7 @@ class UserModel(Base):
 
     folders = relationship("Folder", back_populates="owner", cascade="all, delete-orphan")
     files = relationship("File", back_populates="owner", cascade="all, delete-orphan")
+    models = relationship("ModelRecord", back_populates="owner", cascade="all, delete-orphan")
 
 
 class Folder(Base):
@@ -107,3 +108,16 @@ class File(Base):
 
     owner = relationship("UserModel", back_populates="files")
     folder = relationship("Folder", back_populates="files")
+
+
+class ModelRecord(Base):
+    __tablename__ = "models"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, default="")
+    source_url = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+
+    owner = relationship("UserModel", back_populates="models")
