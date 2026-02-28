@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 antialiased;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  .glass-card {
+    @apply glass p-6 hover:border-lance-500/30 transition-all duration-300;
+  }
+  .btn-primary {
+    @apply bg-lance-600 hover:bg-lance-500 text-white font-medium px-6 py-2.5 rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-lance-600/25;
+  }
+  .btn-secondary {
+    @apply bg-white/10 hover:bg-white/15 text-white font-medium px-6 py-2.5 rounded-xl border border-white/10 transition-all duration-200;
+  }
+  .input-field {
+    @apply bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-lance-500/50 focus:ring-1 focus:ring-lance-500/25 transition-all;
+  }
+  .skill-badge {
+    @apply px-3 py-1 rounded-full text-xs font-medium border;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
