@@ -16,6 +16,8 @@ DELIVERABLES_DIR = Path(__file__).parent.parent / "static" / "deliverables"
 class HuggingFaceService:
     def __init__(self):
         self._settings = get_settings()
+        # Hugging Face deprecated api-inference.huggingface.co.
+        # Use the router service and pass fully qualified URLs per call.
         self._client = InferenceClient(token=self._settings.huggingface_api_key)
 
     async def generate_image(
@@ -25,10 +27,12 @@ class HuggingFaceService:
     ) -> tuple[str, str]:
         """Generate an image from a prompt. Returns (filename, filepath)."""
         model = model or self._settings.hf_image_model
+        base = "https://router.huggingface.co/hf-inference"
+        model_url = model if model.startswith("http") else f"{base}/models/{model}"
 
         image = self._client.text_to_image(
             prompt=prompt,
-            model=model,
+            model=model_url,
         )
 
         filename = f"image_{uuid.uuid4().hex[:8]}.png"
@@ -45,9 +49,15 @@ class HuggingFaceService:
     ) -> list[list[float]]:
         """Get text embeddings for semantic matching."""
         model = model or self._settings.hf_embedding_model
+        base = "https://router.huggingface.co/hf-inference"
+        model_url = (
+            model
+            if model.startswith("http")
+            else f"{base}/pipeline/feature-extraction/{model}"
+        )
         result = self._client.feature_extraction(
             text=texts,
-            model=model,
+            model=model_url,
         )
         if isinstance(result, np.ndarray):
             return result.tolist()

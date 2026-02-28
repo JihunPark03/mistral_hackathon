@@ -24,7 +24,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
 # Bind to 0.0.0.0 so others on your network can reach it
-uvicorn backend.main:app --host 0.0.0.0 --reload --port 8000
+uvicorn backend.main:app --reload --port 8000
 ```
 
 ### 3. Frontend
@@ -33,7 +33,7 @@ uvicorn backend.main:app --host 0.0.0.0 --reload --port 8000
 cd frontend
 npm install
 # Expose Vite dev server to the LAN
-npm run dev -- --host 0.0.0.0 --port 5173
+npm run dev
 ```
 
 Open http://localhost:5173
