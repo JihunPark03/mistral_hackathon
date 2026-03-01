@@ -25,6 +25,7 @@ from backend.db_login_crud import (
     delete_user,
     add_model,
     delete_model,
+    set_default_model,
     get_user_by_id,
     get_user_id,
     get_user_role,
@@ -81,6 +82,8 @@ class ModelCreate(BaseModel):
     description: str | None = ""
     source_url: str
     tag: str
+    price: float | None = 0.0
+    is_default: bool = False
 
 
 # -------------------------
@@ -305,7 +308,16 @@ async def create_model(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    model = await add_model(db, current_user.userid, data.name, data.description or "", data.source_url, data.tag)
+    model = await add_model(
+        db,
+        current_user.userid,
+        data.name,
+        data.description or "",
+        data.source_url,
+        data.tag,
+        data.price or 0.0,
+        data.is_default,
+    )
     return model
 
 
@@ -319,6 +331,18 @@ async def remove_model(
     if not ok:
         raise HTTPException(status_code=404, detail="Model not found")
     return {"status": "deleted"}
+
+
+@app.post("/models/{model_id}/activate")
+async def activate_model(
+    model_id: int,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    model = await set_default_model(db, current_user.userid, model_id)
+    if model is None:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return model
 
 
 @app.get("/")

@@ -45,9 +45,15 @@ export function AgentAvatar({ avatar, size = 'md' }) {
   )
 }
 
-export default function AgentCard({ agent, isDefault = false }) {
+export default function AgentCard({ agent, isDefault = false, onClick }) {
+  const handleClick = (e) => {
+    if (onClick) {
+      e.preventDefault()
+      onClick(agent)
+    }
+  }
   return (
-    <Link to={`/agents/${agent.id}`} className="glass-card block group cursor-pointer">
+    <Link to={`/agents/${agent.id}`} onClick={handleClick} className="glass-card block group cursor-pointer">
       <div className="flex items-start gap-4">
         <AgentAvatar avatar={agent.avatar} />
         <div className="flex-1 min-w-0">

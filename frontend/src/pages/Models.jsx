@@ -96,6 +96,8 @@ export default function Models() {
     )
   }
 
+  const sorted = [...models].sort((a, b) => Number(b.is_default) - Number(a.is_default))
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
@@ -120,15 +122,23 @@ export default function Models() {
       <div className="grid lg:grid-cols-[2fr,1.2fr] gap-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <h3 className="text-white font-semibold mb-3">Uploaded models</h3>
-          {models.length === 0 && <p className="text-sm text-gray-400">No models yet.</p>}
+          {sorted.length === 0 && <p className="text-sm text-gray-400">No models yet.</p>}
           <div className="space-y-3">
-            {models.map((m) => (
+            {sorted.map((m) => (
               <div key={m.id} className="border border-white/10 rounded-xl p-3 bg-black/20">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-white font-semibold">{m.name}</p>
                     <p className="text-xs text-gray-400">{m.source_url}</p>
-                    <p className="text-xs text-lance-300 mt-1">{m.tag}</p>
+                    <p className="text-xs text-lance-300 mt-1 flex items-center gap-2">
+                      {m.tag}
+                      {m.is_default ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[11px] border border-emerald-500/40">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+                          Default
+                        </span>
+                      ) : null}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">{new Date(m.created_at).toLocaleString()}</span>

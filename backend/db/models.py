@@ -118,6 +118,8 @@ class ModelRecord(Base):
     description = Column(Text, default="")
     source_url = Column(String, nullable=False)
     tag = Column(String, default="Image")  # Writing | Voice | Image | Code | Orchestration
+    price = Column(Float, default=0.0)
+    is_default = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 

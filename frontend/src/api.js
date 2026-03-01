@@ -1,4 +1,5 @@
 const BASE = ''
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export async function fetchAgents() {
   const res = await fetch(`${BASE}/api/agents`)
@@ -50,5 +51,50 @@ export async function fetchTopology() {
 
 export async function fetchMeshHealth() {
   const res = await fetch(`${BASE}/api/mesh/health`)
+  return res.json()
+}
+
+// Models (user-provided)
+export async function fetchModels() {
+  const res = await fetch(`${API_BASE}/models`, { credentials: 'include' })
+  if (!res.ok) throw new Error('Failed to load models')
+  return res.json()
+}
+
+export async function createModel(payload) {
+  const res = await fetch(`${API_BASE}/models`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail || 'Failed to create model')
+  }
+  return res.json()
+}
+
+export async function deleteModel(id) {
+  const res = await fetch(`${API_BASE}/models/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail || 'Failed to delete model')
+  }
+  return res.json()
+}
+
+export async function activateModel(id) {
+  const res = await fetch(`${API_BASE}/models/${id}/activate`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail || 'Failed to activate model')
+  }
   return res.json()
 }

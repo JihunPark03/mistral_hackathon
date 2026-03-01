@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from passlib.context import CryptContext
 
 from backend.db.models import UserModel, UserRole, Folder, ModelRecord
@@ -75,12 +75,20 @@ async def list_user_models(db: AsyncSession, user_id: int):
     return result.scalars().all()
 
 
-async def add_model(db: AsyncSession, user_id: int, name: str, description: str, source_url: str, tag: str):
+async def add_model(db: AsyncSession, user_id: int, name: str, description: str, source_url: str, tag: str, price: float, is_default: bool):
+    if is_default:
+        await db.execute(
+            update(ModelRecord)
+            .where(ModelRecord.owner_id == user_id, ModelRecord.tag == tag)
+            .values(is_default=False)
+        )
     model = ModelRecord(
         name=name,
         description=description,
         source_url=source_url,
         tag=tag,
+        price=price,
+        is_default=is_default,
         owner_id=user_id,
     )
     db.add(model)
@@ -97,3 +105,20 @@ async def delete_model(db: AsyncSession, user_id: int, model_id: int):
     await db.delete(model)
     await db.commit()
     return True
+
+
+async def set_default_model(db: AsyncSession, user_id: int, model_id: int):
+    result = await db.execute(select(ModelRecord).where(ModelRecord.id == model_id, ModelRecord.owner_id == user_id))
+    model = result.scalars().first()
+    if not model:
+        return None
+    # Clear existing defaults for this tag
+    await db.execute(
+        update(ModelRecord)
+        .where(ModelRecord.owner_id == user_id, ModelRecord.tag == model.tag)
+        .values(is_default=False)
+    )
+    model.is_default = True
+    await db.commit()
+    await db.refresh(model)
+    return model
