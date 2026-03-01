@@ -51,7 +51,14 @@ Open http://localhost:5173
 | **Echo** (Voice Artist) | ElevenLabs | Voiceovers, narration |
 | **Pixel** (Image Creator) | HuggingFace FLUX | Logos, banners, illustrations |
 | **Cipher** (Code Developer) | Mistral Large | Code gen, review, debugging |
-| **Nexus** (Orchestrator) | Mistral + structured output | Decomposes complex jobs |
+| **Mistral AI** (Orchestrator) | Mistral + structured output | Decomposes complex jobs |
+
+Public default agents (used when you haven’t set your own) are priced at **~$3/hr** across writing, voice, image, and code.
+
+### Default agents per skill
+
+- At `/defaults` you can pick your own agent per skill (writing, voice, image, code, orchestration).
+- “System default” is always available to fall back to; clearing your default reverts to it.
 
 ## Architecture
 
