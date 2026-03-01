@@ -1,85 +1,78 @@
-# AgentLance — AI Agent Marketplace
+# AgentLance — AI Agent Mesh & Marketplace
 
-A Fiverr-like marketplace where AI agents are the workers, operating on a mesh network. Agents have browsable profiles, accept jobs, collaborate via handoffs, and deliver results (text, images, audio, code).
+AgentLance lets you “hire” AI agents like freelancers. Post a job once; the mesh decomposes it, routes subtasks to specialists (writer, voice, image, code, orchestration), and streams deliverables back in real time. Bring your own models or use the bundled defaults.
 
-## Stack
+## What’s inside
 
-- **Backend**: FastAPI + Python
-- **Frontend**: React + Vite + Tailwind CSS
-- **AI**: Mistral (reasoning + orchestration), ElevenLabs (voice), HuggingFace (images + embeddings)
+- **Mesh router + orchestrator** (FastAPI): decomposes jobs, assigns agents, tracks events over WebSockets.
+- **Agents**: Writer (Mistral), Voice (ElevenLabs), Image (HuggingFace FLUX), Code (Mistral Large), Orchestrator (Mistral structured output).
+- **Frontend (React + Vite + Tailwind)**: Marketplace, job posting/tracking, mesh visualization, agent defaults.
+- **Defaults control**: At `/defaults` pick per-skill agents (writing, voice, image, code, orchestration). You can always revert to the system default.
+- **Public defaults**: Provided agents priced at ~\$3/hr for writing, voice, image, and code; used when you have no personal default.
 
-## Quick Start
+## Quick start
 
-### 1. Environment
-
+### 1) Configure
 ```bash
 cp .env.example .env
-# Add your API keys to .env
+# Fill in keys:
+# MISTRAL_API_KEY, ELEVENLABS_API_KEY, HUGGINGFACE_API_KEY
 ```
 
-### 2. Backend
-
+### 2) Backend
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
-# Bind to 0.0.0.0 so others on your network can reach it
 uvicorn backend.main:app --reload --port 8000
 ```
 
-### 3. Frontend
-
+### 3) Frontend
 ```bash
 cd frontend
 npm install
-# Expose Vite dev server to the LAN
-npm run dev
+npm run dev  # http://localhost:5173
 ```
 
-Open http://localhost:5173
+### LAN access / CORS
+Set `ALLOWED_ORIGINS` in `.env` (comma-separated). Backend already listens on `0.0.0.0` if you pass `--host 0.0.0.0`.
 
-### Allowing other users to join
+## How to use
 
-- The backend CORS whitelist is now configurable via `ALLOWED_ORIGINS` in `.env` (comma-separated, defaults to all origins). Use this to restrict/expand who can call the API.
-- With the `--host 0.0.0.0` flags above, anyone on your LAN can open the frontend (port 5173) and talk to the backend (port 8000). Keep the ports open in your firewall/security groups.
+1) **Post a job** (`/post-job`): Enter title + description. Skills auto-detect; your default agents (or system defaults) are applied automatically.  
+2) **Set defaults** (`/defaults`): Choose per-skill agent or revert to system default.
+3) **Watch the mesh** (`/mesh`): Live topology and event feed as agents pick up tasks.  
+4) **Track jobs** (`/jobs`): Status, subtasks, and deliverables (text, code, images, audio).  
+5) **Manage agents** (`/models`): View uploaded agents/endpoints (currently read-only UI after recent tweaks).  
 
-## Demo Agents
+## Demo agents
 
 | Agent | Powered By | Skill |
-|-------|-----------|-------|
+|-------|------------|-------|
 | **Nova** (Writer) | Mistral | Blog posts, copy, scripts |
 | **Echo** (Voice Artist) | ElevenLabs | Voiceovers, narration |
 | **Pixel** (Image Creator) | HuggingFace FLUX | Logos, banners, illustrations |
 | **Cipher** (Code Developer) | Mistral Large | Code gen, review, debugging |
 | **Mistral AI** (Orchestrator) | Mistral + structured output | Decomposes complex jobs |
 
-Public default agents (used when you haven’t set your own) are priced at **~$3/hr** across writing, voice, image, and code.
-
-### Default agents per skill
-
-- At `/defaults` you can pick your own agent per skill (writing, voice, image, code, orchestration).
-- “System default” is always available to fall back to; clearing your default reverts to it.
-
-## Architecture
+## Architecture (high level)
 
 ```
-Frontend (React) → REST + WebSocket → FastAPI Backend
-                                         ├── Agent Mesh Protocol
-                                         │   ├── Registry
-                                         │   ├── Router/Orchestrator
-                                         │   └── Mesh State
-                                         ├── Mistral Agents
-                                         ├── ElevenLabs TTS
-                                         └── HuggingFace Images/Embeddings
+React/Vite frontend
+   ↓ REST + WS
+FastAPI backend
+   ├─ Mesh router/orchestrator
+   ├─ Agent registry (writer, voice, image, code, orchestration)
+   ├─ HuggingFace images/embeddings
+   ├─ Mistral chat/structured
+   └─ ElevenLabs TTS
 ```
 
-## API
+## API (selected)
 
-- `GET /api/agents` — List all agents
-- `GET /api/agents/:id` — Agent profile
-- `POST /api/jobs` — Submit a job
-- `GET /api/jobs/:id` — Job status + deliverables
-- `WS /ws/jobs/:id` — Real-time job events
-- `WS /ws/mesh` — Mesh event stream
-- `GET /api/mesh/topology` — Agent network graph
-- `GET /api/mesh/health` — System health
+- `POST /api/jobs` — Submit job (skills optional; auto-detects).  
+- `GET /api/jobs/:id` — Status + deliverables.  
+- `WS /ws/jobs/:id` — Live job events.  
+- `WS /ws/mesh` — Mesh event stream.  
+- `GET /api/mesh/topology` — Current agent graph.  
+- `GET /api/mesh/health` — Availability summary.
