@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Send, Pencil, Mic, Palette, Terminal, Sparkles } from 'lucide-react'
+import { Send, Sparkles } from 'lucide-react'
 import { submitJob, fetchModels } from '../api'
-
-const SKILL_OPTIONS = [
-  { value: 'writing', label: 'Writing', icon: Pencil, active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
-  { value: 'voice', label: 'Voice', icon: Mic, active: 'bg-violet-500/15 text-violet-400 border-violet-500/30' },
-  { value: 'image', label: 'Image', icon: Palette, active: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  { value: 'code', label: 'Code', icon: Terminal, active: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
-]
 
 const SKILL_DEFAULTS = {
   writing: 'mistral-medium-latest',
@@ -44,52 +37,59 @@ export default function PostJob() {
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [skills, setSkills] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [models, setModels] = useState([])
   const [modelsError, setModelsError] = useState('')
-  const [modelSelection, setModelSelection] = useState({})
+  const [defaultMap, setDefaultMap] = useState({})
+  const [submitError, setSubmitError] = useState('')
 
   useEffect(() => {
     fetchModels()
-      .then(setModels)
+      .then((data) => {
+        setModels(data)
+        const map = {}
+        data.forEach(m => {
+          const tag = (m.tag || '').toLowerCase()
+          if (m.is_default) map[tag] = { source_url: m.source_url, name: m.name }
+        })
+        setDefaultMap(map)
+      })
       .catch(() => setModelsError('Could not load your models. Using system defaults.'))
   }, [])
-
-  const toggleSkill = (skill) => {
-    setSkills(prev =>
-      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
-    )
-  }
 
   const applyTemplate = (template) => {
     setTitle(template.title)
     setDescription(template.description)
-    setSkills(template.skills)
-  }
-
-  const handleModelChange = (skill, value) => {
-    setModelSelection(prev => ({ ...prev, [skill]: value }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim() || !description.trim()) return
+    setSubmitError('')
     setSubmitting(true)
 
     const model_overrides = {}
-    Object.entries(modelSelection).forEach(([skill, model]) => {
-      if (model) model_overrides[skill] = model
+    Object.entries(defaultMap).forEach(([skill, def]) => {
+      if (def?.source_url) model_overrides[skill] = def.source_url
     })
 
-    const job = await submitJob({
-      title,
-      description,
-      required_skills: skills.length ? skills : undefined,
-      client_name: 'User',
-      model_overrides: Object.keys(model_overrides).length ? model_overrides : undefined,
-    })
-    navigate(`/jobs/${job.id}`)
+    try {
+      const job = await submitJob({
+        title,
+        description,
+        required_skills: undefined, // auto-detect
+        client_name: 'User',
+        model_overrides: Object.keys(model_overrides).length ? model_overrides : undefined,
+      })
+      if (!job?.id) {
+        throw new Error('Job submission succeeded without an ID. Please retry.')
+      }
+      navigate(`/jobs/${job.id}`)
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit job')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -125,61 +125,31 @@ export default function PostJob() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Required Skills <span className="text-gray-500">(optional — auto-detected if empty)</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {SKILL_OPTIONS.map(({ value, label, icon: Icon, active }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => toggleSkill(value)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                    skills.includes(value)
-                      ? active
-                      : 'bg-white/5 text-gray-400 border-white/5 hover:bg-white/10'
-                  }`}
-                >
-                  <Icon size={14} />
-                  {label}
-                </button>
-              ))}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Defaults</p>
+                <p className="text-sm text-gray-300">Agents that will be used automatically</p>
+              </div>
+              {modelsError && <span className="text-xs text-amber-400">{modelsError}</span>}
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {['writing','voice','image','code'].map(skill => {
+                const def = defaultMap[skill]
+                const name = def?.name || 'System default'
+                const source = def?.source_url || SKILL_DEFAULTS[skill] || 'auto'
+                return (
+                  <div key={skill} className="p-3 rounded-xl border border-white/10 bg-black/20">
+                    <p className="text-xs uppercase tracking-wide text-gray-500">{skill}</p>
+                    <p className="text-sm text-white font-medium mt-1">{name}</p>
+                    <p className="text-xs text-gray-500 truncate">{source}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
-          {skills.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-300">Model selection (optional)</label>
-                {modelsError && <span className="text-xs text-amber-400">{modelsError}</span>}
-              </div>
-              <div className="space-y-3">
-                {skills.map(skill => {
-                  const options = models.filter(m => (m.tag || '').toLowerCase() === skill)
-                  return (
-                    <div key={skill} className="flex items-center gap-3">
-                      <span className="w-20 text-xs uppercase tracking-wide text-gray-400">{skill}</span>
-                      <select
-                        className="input-field flex-1"
-                        value={modelSelection[skill] || ''}
-                        onChange={e => handleModelChange(skill, e.target.value)}
-                      >
-                        <option value="">
-                          System default {SKILL_DEFAULTS[skill] ? `(${SKILL_DEFAULTS[skill]})` : ''}
-                        </option>
-                        {options.map(m => (
-                          <option key={m.id} value={m.source_url}>
-                            {m.name} — {m.source_url}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          
 
           <button
             type="submit"
@@ -195,6 +165,11 @@ export default function PostJob() {
               </>
             )}
           </button>
+          {submitError && (
+            <div className="text-sm text-red-300 bg-red-900/30 border border-red-500/30 rounded-lg px-3 py-2">
+              {submitError}
+            </div>
+          )}
         </form>
 
         {/* Templates */}

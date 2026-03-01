@@ -9,6 +9,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import useAuth from './hooks/useAuth'
 import Models from './pages/Models'
+import DefaultAgents from './pages/DefaultAgents'
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
@@ -60,7 +61,8 @@ export default function App() {
               <NavItem to="/mesh" icon={Network} label="Mesh" />
               {user ? (
                 <>
-                  <NavItem to="/models" icon={Network} label="My Models" />
+                  <NavItem to="/models" icon={Network} label="My Agents" />
+                  <NavItem to="/defaults" icon={Network} label="Defaults" />
                   <button
                     onClick={logout}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 text-gray-300 hover:text-white hover:bg-white/5 border border-white/10"
@@ -113,6 +115,14 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/models" element={<Models />} />
+            <Route
+              path="/defaults"
+              element={
+                <RequireAuth>
+                  <DefaultAgents />
+                </RequireAuth>
+              }
+            />
           </Routes>
         </main>
 

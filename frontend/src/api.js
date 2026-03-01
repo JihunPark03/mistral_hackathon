@@ -22,6 +22,10 @@ export async function submitJob(job) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(job),
   })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail || body.message || 'Failed to submit job')
+  }
   return res.json()
 }
 

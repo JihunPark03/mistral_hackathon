@@ -264,13 +264,13 @@ export default function Marketplace() {
               {s === 'all' ? 'All Agents' : s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
-          <button
+          {/* <button
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-lance-500 hover:bg-lance-400 text-black"
           >
             <PlusCircle size={14} />
             Add agent
-          </button>
+          </button> */}
           <label className="flex items-center gap-2 text-xs text-gray-300 ml-2">
             <input
               type="checkbox"

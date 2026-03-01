@@ -81,7 +81,7 @@ export default function Models() {
   if (!user) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-white mb-3">Available models</h2>
+        <h2 className="text-2xl font-bold text-white mb-3">Available agents</h2>
         <p className="text-gray-300 mb-4">Log in to manage your own uploads. You can use these defaults without an account.</p>
         <div className="space-y-3">
           {publicModels.map((m) => (
@@ -106,23 +106,16 @@ export default function Models() {
             <Box className="text-lance-300" size={22} />
           </div>
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-lance-300/80">My models</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-lance-300/80">My agents</p>
             <h2 className="text-2xl font-bold text-white">{user.username}'s uploads</h2>
           </div>
         </div>
-        <a
-          href="#add-model"
-          className="inline-flex items-center gap-2 rounded-xl bg-lance-500 hover:bg-lance-400 text-black font-semibold px-4 py-2 transition"
-        >
-          <UploadCloud size={16} />
-          Add model
-        </a>
       </div>
 
-      <div className="grid lg:grid-cols-[2fr,1.2fr] gap-6">
+      <div className="grid lg:grid-cols-1 gap-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <h3 className="text-white font-semibold mb-3">Uploaded models</h3>
-          {sorted.length === 0 && <p className="text-sm text-gray-400">No models yet.</p>}
+          <h3 className="text-white font-semibold mb-3">Uploaded agents</h3>
+          {sorted.length === 0 && <p className="text-sm text-gray-400">No agents yet.</p>}
           <div className="space-y-3">
             {sorted.map((m) => (
               <div key={m.id} className="border border-white/10 rounded-xl p-3 bg-black/20">
@@ -160,13 +153,13 @@ export default function Models() {
           <div className="flex items-center gap-2 mb-3">
             <UploadCloud size={18} className="text-lance-300" />
             <h3 className="text-white font-semibold" id="add-model">
-              Add a model
+              Add an agent
             </h3>
           </div>
           <form className="space-y-3" onSubmit={handleSubmit}>
             <input
               name="name"
-              placeholder="Model name"
+              placeholder="Agent name"
               className="w-full rounded-xl bg-gray-900/80 border border-white/10 px-4 py-3 text-white outline-none focus:border-lance-400 focus:ring-2 focus:ring-lance-500/40"
               value={form.name}
               onChange={handleChange}
@@ -186,7 +179,7 @@ export default function Models() {
             </select>
             <input
               name="source_url"
-              placeholder="Hub URL or endpoint"
+              placeholder="Agent endpoint or hub URL"
               className="w-full rounded-xl bg-gray-900/80 border border-white/10 px-4 py-3 text-white outline-none focus:border-lance-400 focus:ring-2 focus:ring-lance-500/40"
               value={form.source_url}
               onChange={handleChange}
