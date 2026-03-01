@@ -36,6 +36,7 @@ async def submit_job(req: JobRequest):
         required_skills=skills,
         budget=req.budget,
         client_name=req.client_name,
+        model_overrides=req.model_overrides,
     )
 
     return await get_router().submit_job(job)

@@ -31,6 +31,7 @@ class VoiceArtistAgent(BaseAgent):
         script = await mistral.chat(
             messages=[{"role": "user", "content": raw_text}],
             system_prompt=SCRIPT_POLISH_PROMPT,
+            model=context.get("model_overrides", {}).get(Skill.VOICE) if context else None,
         )
 
         # Generate audio via ElevenLabs

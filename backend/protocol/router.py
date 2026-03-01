@@ -97,8 +97,8 @@ class JobRouter:
             data={"skill": skill.value, "agent_name": agent_profile.name},
         ))
 
-        # Execute
-        await self._execute_subtask(job, subtask, agent_profile.id)
+        # Execute (pass model overrides so agents can choose user-selected models)
+        await self._execute_subtask(job, subtask, agent_profile.id, {"model_overrides": job.model_overrides})
 
         # Complete the job
         if subtask.status == SubTaskStatus.COMPLETED and subtask.deliverable:
@@ -235,7 +235,14 @@ class JobRouter:
                         dep_deliverable = deliverable_map[dep_id]
                         context["input_text"] = dep_deliverable.content
 
-                tasks.append(self._execute_subtask(job, st, st.assigned_agent_id, context))
+                tasks.append(
+                    self._execute_subtask(
+                        job,
+                        st,
+                        st.assigned_agent_id,
+                        {**context, "model_overrides": job.model_overrides},
+                    )
+                )
 
             await asyncio.gather(*tasks)
 

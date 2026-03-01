@@ -31,7 +31,8 @@ class CodeDeveloperAgent(BaseAgent):
         content = await mistral.chat(
             messages=[{"role": "user", "content": user_msg}],
             system_prompt=CODE_SYSTEM_PROMPT,
-            model=get_mistral_service()._settings.mistral_large_model,
+            model=(context.get("model_overrides", {}).get(Skill.CODE) if context else None)
+                  or get_mistral_service()._settings.mistral_large_model,
         )
 
         return Deliverable(

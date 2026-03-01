@@ -33,7 +33,15 @@ class ImageCreatorAgent(BaseAgent):
         )
 
         # Generate image via HuggingFace
-        filename, filepath = await hf.generate_image(prompt=enhanced_prompt)
+        # Allow job-level model override for IMAGE skill
+        model_override = None
+        if context and "model_overrides" in context:
+            model_override = context["model_overrides"].get(Skill.IMAGE)
+
+        filename, filepath = await hf.generate_image(
+            prompt=enhanced_prompt,
+            model=model_override,
+        )
 
         return Deliverable(
             type=DeliverableType.IMAGE,

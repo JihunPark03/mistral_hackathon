@@ -20,6 +20,19 @@ class HuggingFaceService:
         # Use the router service and pass fully qualified URLs per call.
         self._client = InferenceClient(token=self._settings.huggingface_api_key)
 
+    def _normalize_model_url(self, model: str, kind: str) -> str:
+        """Accept plain model id, router shortcut (hf://router/...), or full URL."""
+        if model.startswith("http"):
+            return model
+        if model.startswith("hf://router/"):
+            # Strip hf://router/ prefix so we can prepend the https router host
+            path = model.removeprefix("hf://router/").lstrip("/")
+            return f"https://router.huggingface.co/hf-inference/{path}"
+
+        base = "https://router.huggingface.co/hf-inference"
+        suffix = "models" if kind == "model" else "pipeline/feature-extraction"
+        return f"{base}/{suffix}/{model}"
+
     async def generate_image(
         self,
         prompt: str,
@@ -27,8 +40,7 @@ class HuggingFaceService:
     ) -> tuple[str, str]:
         """Generate an image from a prompt. Returns (filename, filepath)."""
         model = model or self._settings.hf_image_model
-        base = "https://router.huggingface.co/hf-inference"
-        model_url = model if model.startswith("http") else f"{base}/models/{model}"
+        model_url = self._normalize_model_url(model, kind="model")
 
         image = self._client.text_to_image(
             prompt=prompt,
@@ -49,12 +61,7 @@ class HuggingFaceService:
     ) -> list[list[float]]:
         """Get text embeddings for semantic matching."""
         model = model or self._settings.hf_embedding_model
-        base = "https://router.huggingface.co/hf-inference"
-        model_url = (
-            model
-            if model.startswith("http")
-            else f"{base}/pipeline/feature-extraction/{model}"
-        )
+        model_url = self._normalize_model_url(model, kind="pipeline")
         result = self._client.feature_extraction(
             text=texts,
             model=model_url,

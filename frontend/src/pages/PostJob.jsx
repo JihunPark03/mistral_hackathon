@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Send, Pencil, Mic, Palette, Terminal, Sparkles } from 'lucide-react'
-import { submitJob } from '../api'
+import { submitJob, fetchModels } from '../api'
 
 const SKILL_OPTIONS = [
   { value: 'writing', label: 'Writing', icon: Pencil, active: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
@@ -9,6 +9,13 @@ const SKILL_OPTIONS = [
   { value: 'image', label: 'Image', icon: Palette, active: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
   { value: 'code', label: 'Code', icon: Terminal, active: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
 ]
+
+const SKILL_DEFAULTS = {
+  writing: 'mistral-medium-latest',
+  voice: 'eleven_flash_v2_5',
+  image: 'black-forest-labs/FLUX.1-schnell',
+  code: 'mistral-large-latest',
+}
 
 const TEMPLATES = [
   {
@@ -39,6 +46,15 @@ export default function PostJob() {
   const [description, setDescription] = useState('')
   const [skills, setSkills] = useState([])
   const [submitting, setSubmitting] = useState(false)
+  const [models, setModels] = useState([])
+  const [modelsError, setModelsError] = useState('')
+  const [modelSelection, setModelSelection] = useState({})
+
+  useEffect(() => {
+    fetchModels()
+      .then(setModels)
+      .catch(() => setModelsError('Could not load your models. Using system defaults.'))
+  }, [])
 
   const toggleSkill = (skill) => {
     setSkills(prev =>
@@ -52,15 +68,26 @@ export default function PostJob() {
     setSkills(template.skills)
   }
 
+  const handleModelChange = (skill, value) => {
+    setModelSelection(prev => ({ ...prev, [skill]: value }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!title.trim() || !description.trim()) return
     setSubmitting(true)
+
+    const model_overrides = {}
+    Object.entries(modelSelection).forEach(([skill, model]) => {
+      if (model) model_overrides[skill] = model
+    })
+
     const job = await submitJob({
       title,
       description,
       required_skills: skills.length ? skills : undefined,
       client_name: 'User',
+      model_overrides: Object.keys(model_overrides).length ? model_overrides : undefined,
     })
     navigate(`/jobs/${job.id}`)
   }
@@ -120,6 +147,39 @@ export default function PostJob() {
               ))}
             </div>
           </div>
+
+          {skills.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-300">Model selection (optional)</label>
+                {modelsError && <span className="text-xs text-amber-400">{modelsError}</span>}
+              </div>
+              <div className="space-y-3">
+                {skills.map(skill => {
+                  const options = models.filter(m => (m.tag || '').toLowerCase() === skill)
+                  return (
+                    <div key={skill} className="flex items-center gap-3">
+                      <span className="w-20 text-xs uppercase tracking-wide text-gray-400">{skill}</span>
+                      <select
+                        className="input-field flex-1"
+                        value={modelSelection[skill] || ''}
+                        onChange={e => handleModelChange(skill, e.target.value)}
+                      >
+                        <option value="">
+                          System default {SKILL_DEFAULTS[skill] ? `(${SKILL_DEFAULTS[skill]})` : ''}
+                        </option>
+                        {options.map(m => (
+                          <option key={m.id} value={m.source_url}>
+                            {m.name} — {m.source_url}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           <button
             type="submit"

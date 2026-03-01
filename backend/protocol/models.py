@@ -115,6 +115,8 @@ class JobRequest(BaseModel):
     required_skills: list[Skill] = Field(default_factory=list)
     budget: float = 0.0
     client_name: str = "Anonymous"
+    # Optional per-skill model overrides (e.g., use a specific image or LLM model)
+    model_overrides: dict[Skill, str] = Field(default_factory=dict)
 
 
 class Job(BaseModel):
@@ -124,6 +126,7 @@ class Job(BaseModel):
     required_skills: list[Skill] = Field(default_factory=list)
     budget: float = 0.0
     client_name: str = "Anonymous"
+    model_overrides: dict[Skill, str] = Field(default_factory=dict)
     status: JobStatus = JobStatus.PENDING
     assigned_agent_id: str | None = None
     subtasks: list[SubTask] = Field(default_factory=list)

@@ -31,6 +31,7 @@ class WriterAgent(BaseAgent):
         content = await mistral.chat(
             messages=[{"role": "user", "content": user_msg}],
             system_prompt=WRITER_SYSTEM_PROMPT,
+            model=context.get("model_overrides", {}).get(Skill.WRITING) if context else None,
         )
 
         return Deliverable(
