@@ -9,6 +9,7 @@ const PUBLIC_DEFAULT_MAP = {
   image: 'public-flux-schnell',
   writing: 'public-mistral',
   voice: 'public-elevenlabs',
+  orchestration: 'public-orchestration',
 }
 const PUBLIC_MODELS = [
   {
@@ -44,6 +45,15 @@ const PUBLIC_MODELS = [
     description: 'Default TTS voice model from ElevenLabs',
     tag: 'voice',
     source_url: 'elevenlabs/default-voice',
+    price: 0,
+    is_default: true,
+  },
+  {
+    id: 'public-orchestration',
+    name: 'Mistral AI',
+    description: 'Default orchestration brain for decomposing jobs',
+    tag: 'orchestration',
+    source_url: 'mistral-large-latest',
     price: 0,
     is_default: true,
   },
@@ -102,20 +112,30 @@ export default function Marketplace() {
     load()
   }, [user])
 
-  const asAgent = (m) => ({
-    id: m.id,
-    name: m.name,
-    description: m.description || m.source_url,
-    skills: [m.tag?.toLowerCase() || 'image'],
-    role: m.tag,
-    rating: 5.0,
-    jobs_completed: 0,
-    hourly_rate: m.price ?? 0,
-    avatar: 'terminal',
-    status: 'available',
-    is_default: m.is_default,
-    owner: m.owner || 'user',
-  })
+  const asAgent = (m) => {
+    const tag = m.tag?.toLowerCase() || 'image'
+    const avatarByTag = {
+      writing: 'pencil',
+      voice: 'microphone',
+      image: 'palette',
+      code: 'terminal',
+      orchestration: 'network',
+    }
+    return {
+      id: m.id,
+      name: m.name,
+      description: m.description || m.source_url,
+      skills: [tag],
+      role: m.tag,
+      rating: 5.0,
+      jobs_completed: 0,
+      hourly_rate: m.price ?? 0,
+      avatar: avatarByTag[tag] || 'terminal',
+      status: 'available',
+      is_default: m.is_default,
+      owner: m.owner || 'user',
+    }
+  }
 
   const publicAgents = PUBLIC_MODELS.map((m) => ({
     ...asAgent(m),
@@ -364,11 +384,6 @@ export default function Marketplace() {
             <div>
               <h3 className="text-white font-semibold flex items-center gap-2">
                 {selected.name}
-                {defaults[selected.skills[0]] === selected.id && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[11px] border border-emerald-500/40">
-                    Default
-                  </span>
-                )}
               </h3>
               <p className="text-xs text-gray-400">{selected.role}</p>
             </div>
@@ -396,6 +411,10 @@ export default function Marketplace() {
           </div>
           <div className="flex justify-between items-center">
             <div className="text-xs text-gray-500">Tag: {selected.skills[0]}</div>
+            <span className="inline-flex items-center gap-1 text-emerald-300 text-sm ml-auto">
+              <CheckCircle2 size={14} />
+              Active
+            </span>
             {user && !(selected.owner === 'public' || selected.id.toString().startsWith('public-')) && (
               <button
                 onClick={() => handleDelete(selected)}
@@ -405,18 +424,6 @@ export default function Marketplace() {
                 Delete
               </button>
             )}
-            <button
-              onClick={() => handleActivate(selected)}
-              className="inline-flex items-center gap-1 text-emerald-300 hover:text-emerald-200 text-sm ml-auto disabled:opacity-50"
-              disabled={
-                !user ||
-                selected.owner === 'public' ||
-                selected.id.toString().startsWith('public-')
-              }
-            >
-              <CheckCircle2 size={14} />
-              {defaults[selected.skills[0]] === selected.id ? 'Active' : 'Set active for this tag'}
-            </button>
           </div>
         </div>
       </div>

@@ -52,6 +52,12 @@ export default function AgentCard({ agent, isDefault = false, onClick }) {
       onClick(agent)
     }
   }
+  const statusColor =
+    agent.status === 'available'
+      ? 'bg-green-400'
+      : agent.status === 'busy'
+        ? 'bg-amber-400'
+        : 'bg-gray-500'
   return (
     <Link to={`/agents/${agent.id}`} onClick={handleClick} className="glass-card block group cursor-pointer">
       <div className="flex items-start gap-4">
@@ -61,13 +67,7 @@ export default function AgentCard({ agent, isDefault = false, onClick }) {
             <h3 className="font-semibold text-white group-hover:text-lance-400 transition-colors">
               {agent.name}
             </h3>
-            <span className={`w-2 h-2 rounded-full ${
-              isDefault
-                ? 'bg-emerald-400 shadow-[0_0_0_4px_rgba(16,185,129,0.25)]'
-                : agent.status === 'available' ? 'bg-green-400' :
-                  agent.status === 'busy' ? 'bg-amber-400' : 'bg-gray-500'
-            }`} />
-            {isDefault && <span className="text-xs text-emerald-300">Default</span>}
+            <span className={`w-2 h-2 rounded-full ${statusColor}`} />
           </div>
           <p className="text-sm text-gray-400 mb-3">{agent.role}</p>
           <div className="flex flex-wrap gap-1.5 mb-3">

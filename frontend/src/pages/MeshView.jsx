@@ -44,7 +44,7 @@ export default function MeshView() {
             connected ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
           }`}>
             <Wifi size={12} />
-            {connected ? 'Live' : 'Disconnected'}
+            {connected ? 'Active' : 'Offline'}
           </div>
         </div>
       </div>

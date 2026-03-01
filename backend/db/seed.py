@@ -63,7 +63,7 @@ async def seed_agents():
     )
 
     orchestrator = AgentProfile(
-        name="Nexus",
+        name="Mistral AI",
         role="Orchestrator",
         skills=[Skill.ORCHESTRATION],
         description="Master coordinator that decomposes complex projects into subtasks and routes them to specialist agents. Powered by Mistral AI with structured output.",

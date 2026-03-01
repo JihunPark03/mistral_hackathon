@@ -41,7 +41,7 @@ Return a JSON object with this exact structure:
 
 
 class OrchestratorAgent(BaseAgent):
-    name = "Orchestrator"
+    name = "Mistral AI"
     skills = [Skill.ORCHESTRATION]
 
     async def execute(self, subtask: SubTask, context: dict | None = None) -> Deliverable:
