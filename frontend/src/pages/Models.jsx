@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import useAuth from '../hooks/useAuth'
-import { UploadCloud, Box } from 'lucide-react'
+import { UploadCloud, Box, Trash } from 'lucide-react'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
 
 export default function Models() {
   const { user, loading: authLoading, refresh } = useAuth()
   const [models, setModels] = useState([])
-  const [form, setForm] = useState({ name: '', description: '', source_url: '' })
+  const [form, setForm] = useState({ name: '', description: '', source_url: '', tag: 'Image' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const publicModels = [
+    { name: 'black-forest-labs/FLUX.1-schnell', source_url: 'hf://router/models/black-forest-labs/FLUX.1-schnell', description: 'Default image model' },
+    { name: 'sentence-transformers/all-MiniLM-L6-v2', source_url: 'hf://router/pipeline/feature-extraction/all-MiniLM-L6-v2', description: 'Default embeddings model' },
+  ]
 
   const fetchModels = async () => {
     try {
@@ -46,7 +50,7 @@ export default function Models() {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.detail || 'Upload failed')
       }
-      setForm({ name: '', description: '', source_url: '' })
+      setForm({ name: '', description: '', source_url: '', tag: 'Image' })
       await fetchModels()
       await refresh()
     } catch (e) {
@@ -56,8 +60,41 @@ export default function Models() {
     }
   }
 
+  const handleDelete = async (id) => {
+    setError('')
+    try {
+      const res = await fetch(`${API_BASE}/models/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.detail || 'Delete failed')
+      }
+      await fetchModels()
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+
   if (authLoading) return null
-  if (!user) return <div className="p-6 text-gray-200">Please log in to view your models.</div>
+  if (!user) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold text-white mb-3">Available models</h2>
+        <p className="text-gray-300 mb-4">Log in to manage your own uploads. You can use these defaults without an account.</p>
+        <div className="space-y-3">
+          {publicModels.map((m) => (
+            <div key={m.name} className="border border-white/10 rounded-xl p-3 bg-black/20">
+              <p className="text-white font-semibold">{m.name}</p>
+              <p className="text-xs text-gray-400">{m.source_url}</p>
+              <p className="text-sm text-gray-300 mt-1">{m.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -87,12 +124,21 @@ export default function Models() {
           <div className="space-y-3">
             {models.map((m) => (
               <div key={m.id} className="border border-white/10 rounded-xl p-3 bg-black/20">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-white font-semibold">{m.name}</p>
                     <p className="text-xs text-gray-400">{m.source_url}</p>
+                    <p className="text-xs text-lance-300 mt-1">{m.tag}</p>
                   </div>
-                  <span className="text-xs text-gray-500">{new Date(m.created_at).toLocaleString()}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">{new Date(m.created_at).toLocaleString()}</span>
+                    <button
+                      onClick={() => handleDelete(m.id)}
+                      className="text-red-300 hover:text-red-200 inline-flex items-center justify-center rounded-md border border-red-500/40 px-2 py-1 text-xs"
+                    >
+                      <Trash size={12} />
+                    </button>
+                  </div>
                 </div>
                 {m.description && <p className="text-sm text-gray-300 mt-1">{m.description}</p>}
               </div>
@@ -116,6 +162,18 @@ export default function Models() {
               onChange={handleChange}
               required
             />
+            <select
+              name="tag"
+              className="w-full rounded-xl bg-gray-900/80 border border-white/10 px-4 py-3 text-white outline-none focus:border-lance-400 focus:ring-2 focus:ring-lance-500/40"
+              value={form.tag}
+              onChange={handleChange}
+            >
+              <option>Writing</option>
+              <option>Voice</option>
+              <option>Image</option>
+              <option>Code</option>
+              <option>Orchestration</option>
+            </select>
             <input
               name="source_url"
               placeholder="Hub URL or endpoint"

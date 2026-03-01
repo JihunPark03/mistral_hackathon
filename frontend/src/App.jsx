@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import { Zap, Users, UserPlus, PlusCircle, Activity, Network } from 'lucide-react'
 import Marketplace from './pages/Marketplace'
 import AgentProfile from './pages/AgentProfile'
@@ -9,6 +9,13 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import useAuth from './hooks/useAuth'
 import Models from './pages/Models'
+
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
+  return children
+}
 
 function NavItem({ to, icon: Icon, label }) {
   return (
@@ -78,9 +85,30 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Marketplace />} />
             <Route path="/agents/:id" element={<AgentProfile />} />
-            <Route path="/post-job" element={<PostJob />} />
-            <Route path="/jobs" element={<JobTracker />} />
-            <Route path="/jobs/:id" element={<JobTracker />} />
+            <Route
+              path="/post-job"
+              element={
+                <RequireAuth>
+                  <PostJob />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/jobs"
+              element={
+                <RequireAuth>
+                  <JobTracker />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/jobs/:id"
+              element={
+                <RequireAuth>
+                  <JobTracker />
+                </RequireAuth>
+              }
+            />
             <Route path="/mesh" element={<MeshView />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

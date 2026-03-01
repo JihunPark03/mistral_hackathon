@@ -24,6 +24,7 @@ from backend.db_login_crud import (
     create_user,
     delete_user,
     add_model,
+    delete_model,
     get_user_by_id,
     get_user_id,
     get_user_role,
@@ -79,6 +80,7 @@ class ModelCreate(BaseModel):
     name: str
     description: str | None = ""
     source_url: str
+    tag: str
 
 
 # -------------------------
@@ -303,8 +305,20 @@ async def create_model(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    model = await add_model(db, current_user.userid, data.name, data.description or "", data.source_url)
+    model = await add_model(db, current_user.userid, data.name, data.description or "", data.source_url, data.tag)
     return model
+
+
+@app.delete("/models/{model_id}")
+async def remove_model(
+    model_id: int,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    ok = await delete_model(db, current_user.userid, model_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return {"status": "deleted"}
 
 
 @app.get("/")

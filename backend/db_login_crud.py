@@ -75,14 +75,25 @@ async def list_user_models(db: AsyncSession, user_id: int):
     return result.scalars().all()
 
 
-async def add_model(db: AsyncSession, user_id: int, name: str, description: str, source_url: str):
+async def add_model(db: AsyncSession, user_id: int, name: str, description: str, source_url: str, tag: str):
     model = ModelRecord(
         name=name,
         description=description,
         source_url=source_url,
+        tag=tag,
         owner_id=user_id,
     )
     db.add(model)
     await db.commit()
     await db.refresh(model)
     return model
+
+
+async def delete_model(db: AsyncSession, user_id: int, model_id: int):
+    result = await db.execute(select(ModelRecord).where(ModelRecord.id == model_id, ModelRecord.owner_id == user_id))
+    model = result.scalars().first()
+    if not model:
+        return False
+    await db.delete(model)
+    await db.commit()
+    return True

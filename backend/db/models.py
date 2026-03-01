@@ -117,6 +117,7 @@ class ModelRecord(Base):
     name = Column(String, nullable=False)
     description = Column(Text, default="")
     source_url = Column(String, nullable=False)
+    tag = Column(String, default="Image")  # Writing | Voice | Image | Code | Orchestration
     created_at = Column(DateTime, default=datetime.utcnow)
     owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
 
